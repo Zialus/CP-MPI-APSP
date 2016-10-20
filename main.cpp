@@ -1,9 +1,13 @@
+//C++
 #include <iostream>
-#include "mpi.h"
+//C
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+//MPI
+#include "mpi.h"
 
+//Defines
 #define ArrToMatrix(ROW, COL, NODES) (ROW) * (NODES) + (COL)
 #define ROOT 0
 
@@ -71,8 +75,8 @@ int main(int argc, char *argv[]) {
     }
 
     dealWithInput();
-
-    //printMatrix();
+    printf("INFOWARS.COM\n");
+    printMatrix();
 
   }
 
