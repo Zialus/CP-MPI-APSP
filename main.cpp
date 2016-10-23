@@ -14,9 +14,16 @@
 
 int **theMatrix;
 int *theMatrixData;
-int *localMatrix;
-int nNodes;
+int **smallMatrix1;
+int **smallMatrix2;
+int **smallMatrix3;
+int **smallMatrix4;
 
+int myRank, cartRank;
+int rowMatrix, columnMatrix;
+int Q, nProc, nNodes;
+int myRow, myCol;
+MPI_Comm cartComm, rowComm, colComm;
 
 int checkIfPossible( int p, int n){
     printf("Está a verificar se é possivel....\n");
@@ -44,6 +51,53 @@ void dealWithInput(){
 }
 
 
+void prepareMatrixes(){
+    printf("Entrou no prepareMatrixes\n");
+    int i;
+    int dims[2];
+    int period[2] = {1,1};
+    int cartCoords[2];
+
+    MPI_Bcast(&nNodes, 1, MPI_INT, ROOT, MPI_COMM_WORLD);
+
+    int* auxMatrix = new int[Q*Q];
+    smallMatrix1 = new int*[Q];
+    for(i=0; i<Q; i++){
+        smallMatrix1[i] = &auxMatrix[i*Q];
+    }
+
+    auxMatrix = new int[Q*Q];
+    smallMatrix2 = new int*[Q];
+    for(i=0; i<Q;i++){
+        smallMatrix2[i] = &auxMatrix[i*Q];
+    }
+
+    auxMatrix = new int[Q*Q];
+    smallMatrix3 = new int*[Q];
+    for(i=0; i<Q; i++){
+        smallMatrix3[i] = &auxMatrix[i*Q];
+    }
+
+    auxMatrix = new int[Q*Q];
+    smallMatrix4 = new int*[Q];
+    for(i=0; i<Q; i++){
+        smallMatrix4[i] = &auxMatrix[i*Q];
+    }
+
+
+    MPI_Dims_create(nProc, 2, dims);
+    MPI_Cart_create(MPI_COMM_WORLD, 2, dims, period, 1, &cartComm);
+    MPI_Comm_rank(cartComm, &cartRank);
+
+    MPI_Cart_coords(cartComm, cartRank, 2, cartCoords);
+    myRow = cartCoords[0];
+    myCol = cartCoords[1];
+
+
+
+    printf("Saiu do prepareMatrixes\n");
+}
+
 void printMatrix(){
     for (int i = 0; i < nNodes; i++){
         for (int j = 0; j < nNodes; j++){
@@ -53,21 +107,16 @@ void printMatrix(){
 }
 
 int main(int argc, char *argv[]) {
-    int myrank;
-    int rowMatrix, columnMatrix;
-    int Q, nProc;
-    int myRow, myCol;
-
     MPI_Status status;
 
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &nProc);
-    MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
+    MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
 
-    if(myrank == ROOT){
-        printf("nProc = %d\n", nProc);
+    if(myRank == ROOT){
+        //printf("nProc = %d\n", nProc);
         scanf("%d", &nNodes);
-        printf("Nodes = %d\n", nNodes);
+        //printf("Nodes = %d\n", nNodes);
 
         int Q = checkIfPossible(nProc, nNodes);
         if(Q == 1){
@@ -83,17 +132,16 @@ int main(int argc, char *argv[]) {
         }
 
         dealWithInput();
-        printf("\nINFOWARS.COM\n");
-        printMatrix();
+        //printf("\nINFOWARS.COM\n");
 
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
     double startTiem = MPI_Wtime();
 
-    MPI_Bcast(&nNodes, 1, MPI_INT, ROOT, MPI_COMM_WORLD);
+    prepareMatrixes();
 
-    //printf("%d----%d\n", nNodes,myrank);
+
     double finish = MPI_Wtime();
 
     MPI_Finalize();
