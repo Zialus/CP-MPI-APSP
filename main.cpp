@@ -1,5 +1,6 @@
 //C++
 #include <iostream>
+#include <algorithm>
 //C
 #include <stdio.h>
 #include <stdlib.h>
@@ -119,7 +120,6 @@ void writeToMatrixes(){
 
                 MPI_Cart_rank(cartComm, coordsToRank, &rankToSend);
 
-
                 if(rankToSend == ROOT){
                     for(int ii = i; ii< i+Q; ii++){
                         for(int jj = j; jj<j+Q; jj++){
@@ -134,12 +134,31 @@ void writeToMatrixes(){
             }
         }
     }
-
     else{
         MPI_Recv(localMatrix, 1, qqMatrix, ROOT, 1, cartComm, &status);
     }
 
 }
+
+
+
+void multiplySomething(int** matrixA, int** matrixB, int** matrixC, int size){
+    int i, j, k;
+    int sum = 0;
+    for(i=0; i<size; i++ ){
+        for(j=0; j<size; j++){
+            for(k=0; k<size; k++){
+                if(matrixA[i][k] != -1 && matrixB[k][j] != -1 && matrixC[i][j] != -1) {
+                    matrixC[i][j] = std::min(matrixC[i][j], matrixA[i][k] + matrixB[k][j]);
+                }
+                else if(matrixA[i][k] != -1 && matrixB[k][j] != -1 ){
+                    matrixC[i][j] = matrixA[i][k] + matrixB[k][j];
+                }
+            }
+        }
+    }
+}
+
 
 void printMatrix(){
     for (int i = 0; i < nNodes; i++){
@@ -185,6 +204,8 @@ int main(int argc, char *argv[]) {
 
     prepareMatrixes();
     writeToMatrixes();
+
+
 
     double finish = MPI_Wtime();
 
