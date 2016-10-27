@@ -5,12 +5,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <malloc.h>
 //MPI
 #include "mpi.h"
 
 //Defines
-#define ArrToMatrix(ROW, COL, NODES) (ROW) * (NODES) + (COL)
 #define ROOT 0
 
 int **theMatrix;
@@ -22,17 +20,18 @@ int **smallMatrixC;
 
 int myRank, cartRank;
 int rowMatrix, columnMatrix;
-int Q, nProc, nNodes;
+int Q, nProc, nNodes, nByQ;
 int myRow, myCol;
 MPI_Comm cartComm, rowComm, colComm;
 MPI_Status status;
 
+void fox();
 
-int checkIfPossible( int p, int n){
+int checkIfPossible(int p, int nNodes){
     printf("Está a verificar se é possivel....\n");
     int tempQ = sqrt(p);
     if(tempQ * tempQ == p){
-        if(n%tempQ == 0){
+        if(nNodes%tempQ == 0){
             return tempQ;
         }
     }
@@ -51,6 +50,45 @@ void dealWithInput(){
             }
         }
     }
+}
+
+void APSP(){
+    for (int d = 2; d <= 2*nNodes; d=d*2) {
+        fox();
+    }
+}
+
+void fox() {
+
+    MPI_Datatype littleMatrix;
+    MPI_Type_vector(nByQ*nByQ,1,1,MPI_INT, &littleMatrix);
+    MPI_Type_commit(&littleMatrix);
+
+
+
+
+    // Calculate indices of matrices above and below (on the same column)
+    int source = (myRow + 1) % Q;
+    int dest = (myRow + Q - 1) % Q;
+
+    // Save their ranks on rankUP and rankDOWN
+    int rankUP, rankDOWN;
+    int coords[1];
+    coords[0]= source;
+    MPI_Cart_rank(colComm,coords,&rankUP);
+    coords[0]=dest;
+    MPI_Cart_rank(colComm,coords,&rankDOWN);
+
+
+    for (int stage = 0; stage < Q; stage++) {
+
+        int bcastROOT = ( myRow + stage) % Q;
+        if (bcastROOT == myCol) {
+            MPI_Bcast(localMatrix[0],1,littleMatrix,bcastROOT,rowComm);
+        }
+
+    }
+
 }
 
 
@@ -107,11 +145,14 @@ void prepareMatrixes(){
     printf("Saiu do prepareMatrixes\n");
 }
 
-void writeToMatrixes(){
+void writeToMatrices(){
+
+    // rank of process that will receive a particular subMatrix inside the CartGrid
     int rankToSend;
-    MPI_Datatype qqMatrix;
-    MPI_Type_vector(Q,Q,nNodes,MPI_INT, &qqMatrix);
-    MPI_Type_commit(&qqMatrix);
+
+    MPI_Datatype subMatrix;
+    MPI_Type_vector(nByQ,nByQ,nNodes,MPI_INT, &subMatrix);
+    MPI_Type_commit(&subMatrix);
 
     if(myRank == ROOT){
         for(int i =0; i<=Q; i+=Q){
@@ -128,23 +169,23 @@ void writeToMatrixes(){
                     }
                 }
                 else {
-                    MPI_Send(&theMatrix[i][j], 1, qqMatrix, rankToSend, 1, cartComm);
+                    MPI_Send(&theMatrix[i][j], 1, subMatrix, rankToSend, 1, cartComm);
                 }
 
             }
         }
     }
     else{
-        MPI_Recv(localMatrix, 1, qqMatrix, ROOT, 1, cartComm, &status);
+        MPI_Recv(localMatrix, 1, subMatrix, ROOT, 1, cartComm, &status);
     }
 
+    MPI_Type_free(&subMatrix);
 }
 
 
 
-void multiplySomething(int** matrixA, int** matrixB, int** matrixC, int size){
+void localMultiply(int** matrixA, int** matrixB, int** matrixC, int size){
     int i, j, k;
-    int sum = 0;
     for(i=0; i<size; i++ ){
         for(j=0; j<size; j++){
             for(k=0; k<size; k++){
@@ -185,6 +226,8 @@ int main(int argc, char *argv[]) {
             return 1;
         }
 
+        nByQ = nNodes / Q ;
+
         MPI_Bcast(&Q, 1, MPI_INT, ROOT, MPI_COMM_WORLD);
 
         theMatrix = new int*[nNodes];
@@ -195,7 +238,9 @@ int main(int argc, char *argv[]) {
         }
 
         dealWithInput();
-        //printf("\nINFOWARS.COM\n");
+        //printf("\n!!!!!INFOWARS DOT COM!!!!!!\n");
+        //printf("\n!!!!!MY LIBIDO IS THRU THE ROOF!!!!!!\n");
+
 
     }
 
@@ -203,11 +248,13 @@ int main(int argc, char *argv[]) {
     double startTime = MPI_Wtime();
 
     prepareMatrixes();
-    writeToMatrixes();
+    writeToMatrices();
 
 
+    double finishTime = MPI_Wtime();
 
-    double finish = MPI_Wtime();
+    double elapsedTime = finishTime - startTime;
+    std::cout << elapsedTime << std::endl;
 
     MPI_Finalize();
     return 0;
