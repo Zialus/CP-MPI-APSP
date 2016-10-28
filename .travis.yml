@@ -21,4 +21,4 @@ script:
   - mkdir build
   - cd build
   - cmake .. && make
-  - mpirun -n 4 cp-is-fun < Input/6
+  - mpirun -n 4 cp-is-fun < ../Input/6
