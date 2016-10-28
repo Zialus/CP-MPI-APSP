@@ -1,0 +1,14 @@
+language: c++
+sudo: required
+dist: trusty
+os:
+  - linux
+  - osx
+
+env:
+  - CMAKE_CXX_COMPILER=mpicxx
+
+script:
+  - mkdir build
+  - cd build
+  - cmake .. && make
