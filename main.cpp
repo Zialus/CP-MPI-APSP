@@ -26,22 +26,7 @@ MPI_Comm cartComm, rowComm, colComm;
 MPI_Status status;
 
 void fox();
-
-void localMultiply(int** matrixA, int** matrixB, int** matrixC, int size){
-    int i, j, k;
-    for(i=0; i<size; i++ ){
-        for(j=0; j<size; j++){
-            for(k=0; k<size; k++){
-                if(matrixA[i][k] != -1 && matrixB[k][j] != -1 && matrixC[i][j] != -1) {
-                    matrixC[i][j] = std::min(matrixC[i][j], matrixA[i][k] + matrixB[k][j]);
-                }
-                else if(matrixA[i][k] != -1 && matrixB[k][j] != -1 ){
-                    matrixC[i][j] = matrixA[i][k] + matrixB[k][j];
-                }
-            }
-        }
-    }
-}
+void localMultiply();
 
 int checkIfPossible(int p, int nNodes){
     printf("Está a verificar se é possivel....\n");
@@ -52,7 +37,7 @@ int checkIfPossible(int p, int nNodes){
         }
     }
     printf("Não é possível aplicar o algoritmo Fox\n");
-    return 1;
+    return -1;
 }
 
 void dealWithInput(){
@@ -75,12 +60,11 @@ void APSP(){
 }
 
 void fox() {
-
     MPI_Datatype littleMatrix;
     MPI_Type_vector(nByQ*nByQ,1,1,MPI_INT, &littleMatrix);
     MPI_Type_commit(&littleMatrix);
 
-    //FALTA PASSAR VALORES PARA SMALLMATRIXB E SMALLMATRIXC
+    //FALTA PASSAR VALORES PARA SMALLMATRIXB E SMALLMATRIXC 
 
     // Calculate indices of matrices above and below (on the same column)
     int source = (myRow + 1) % Q;
@@ -91,20 +75,20 @@ void fox() {
     int coords[1];
     coords[0]= source;
     MPI_Cart_rank(colComm,coords,&rankUP);
-    coords[0]=dest;
+    coords[0]= dest;
     MPI_Cart_rank(colComm,coords,&rankDOWN);
 
 
     for (int stage = 0; stage < Q; stage++) {
 
-        int bcastROOT = ( myRow + stage) % Q;
+        int bcastROOT = (myRow + stage) % Q;
         coords[0] = bcastROOT;
         int bcastROOTrank;
         MPI_Cart_rank(rowComm, coords, &bcastROOTrank);
         if (bcastROOT == myCol) {
             MPI_Bcast(localMatrix[0],1,littleMatrix,bcastROOTrank,rowComm);
             localMultiply(localMatrix, smallMatrixB, smallMatrixC, nByQ);
-        }
+        } 
         else {
             MPI_Bcast(smallMatrixA[0],1,littleMatrix,bcastROOTrank,rowComm);
             localMultiply(smallMatrixA, smallMatrixB, smallMatrixC, nByQ);
@@ -124,7 +108,39 @@ void fox() {
 }
 
 
-void prepareMatrixes(){
+void conquerTheMatrix(){
+    int datRank;
+    MPI_Datatype littleMatrix;
+    MPI_Type_vector(nByQ,nByQ,nNodes,MPI_INT, &subMatrix);
+    MPI_Type_commit(&subMatrix);
+
+    if(myRank == ROOT){
+        for(int i =0; i<=nNodes; i+=nByQ){
+            for(int j=0; j<=nNodes; j+=nByQ){
+                int coordsToRank[2] = {i/nByQ, j/nByQ};
+                MPI_Cart_rank(cartComm, coordsToRank, &datRank);
+
+                if(datRank == ROOT){
+                    for(int ii=i; ii<i+nByQ; ii++){
+                        for(int jj=j; jj<j+nByQ; jj++){
+                            theMatrix[ii][jj] = localMatrix[ii][jj];
+                        }
+                    }
+                }
+                else {
+                    MPI_Recv(theMatrix[i][j], 1, subMatrix, datRank, 0, cartComm, &status);
+                }
+
+            }
+        }
+    }
+    else{
+        MPI_Send(localMatrix[0], nByQ*nByQ, MPI_INT, ROOT, 1, cartComm);
+    }
+}
+
+
+void prepareMatrices(){
     printf("Entrou no prepareMatrixes\n");
     int i;
     int dims[2];
@@ -176,7 +192,7 @@ void prepareMatrixes(){
     printf("Saiu do prepareMatrices\n");
 }
 
-void writeToMatrices(){
+void divideTheMatrix(){
 
     // rank of process that will receive a particular subMatrix inside the CartGrid
     int rankToSend;
@@ -215,7 +231,20 @@ void writeToMatrices(){
 
 
 
-
+void localMultiply(int** matrixA, int** matrixB, int** matrixC, int size){
+    for(int i=0; i<size; i++ ){
+        for(int j=0; j<size; j++){
+            for(int k=0; k<size; k++){
+                if(matrixA[i][k] != -1 && matrixB[k][j] != -1 && matrixC[i][j] != -1) {
+                    matrixC[i][j] = std::min(matrixC[i][j], matrixA[i][k] + matrixB[k][j]);
+                }
+                else if(matrixA[i][k] != -1 && matrixB[k][j] != -1 ){
+                    matrixC[i][j] = matrixA[i][k] + matrixB[k][j];
+                }
+            }
+        }
+    }
+}
 
 
 void printMatrix(){
@@ -235,33 +264,33 @@ int main(int argc, char *argv[]) {
         scanf("%d", &nNodes);
 
         int Q = checkIfPossible(nProc, nNodes);
-        if(Q == 1){
+        if(Q < 0){
             MPI_Abort(MPI_COMM_WORLD, 0);
             return 1;
         }
 
         nByQ = nNodes / Q ;
 
-        MPI_Bcast(&nNodes, 1, MPI_INT, ROOT, MPI_COMM_WORLD);
-        MPI_Bcast(&nByQ, 1, MPI_INT, ROOT, MPI_COMM_WORLD);
-
         theMatrix = new int*[nNodes];
         theMatrixData = new int[nNodes*nNodes];
-
         for (int i = 0; i < nNodes ; ++i) {
             theMatrix[i] = &theMatrixData[i * nNodes];
         }
 
         dealWithInput();
+        MPI_Bcast(&nNodes, 1, MPI_INT, ROOT, MPI_COMM_WORLD);
+        MPI_Bcast(&nByQ, 1, MPI_INT, ROOT, MPI_COMM_WORLD);
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
     double startTime = MPI_Wtime();
 
-    prepareMatrixes();
-    writeToMatrices();
+    prepareMatrices();
+    divideTheMatrix();
     APSP();
+    conquerTheMatrix();
 
+    MPI_Barrier(MPI_COMM_WORLD);
     double finishTime = MPI_Wtime();
 
     double elapsedTime = finishTime - startTime;
