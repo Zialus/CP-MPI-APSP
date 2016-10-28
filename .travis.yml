@@ -1,4 +1,4 @@
-language: c++
+language: cpp
 sudo: required
 dist: trusty
 os:
@@ -12,3 +12,4 @@ script:
   - mkdir build
   - cd build
   - cmake .. && make
+  - mpirun -n 4 cp-is-fun <
