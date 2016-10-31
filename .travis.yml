@@ -15,7 +15,7 @@ before_install:
  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install open-mpi; fi
 
 env:
-  - CMAKE_CXX_COMPILER=mpicxx
+  - CMAKE_CXX_COMPILER=mpic++
 
 script:
   - mkdir build
