@@ -11,14 +11,13 @@ addons:
    - libopenmpi-dev
    - openmpi-bin
 before_install:
- - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
- - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install open-mpi; fi
-
-env:
-  - CXX=mpic++
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install open-mpi; fi
+  - test -n $CC && unset CC
+  - test -n $CXX && unset CXX
 
 script:
   - mkdir build
   - cd build
   - cmake .. && make
-  - mpirun -n 4 floyd < ../InputTests/6
+  - ctest

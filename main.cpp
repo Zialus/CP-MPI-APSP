@@ -62,20 +62,6 @@ void localMultiply(int** matrixA, int** matrixB, int** matrixC, int size){
 }
 
 
-void dealWithInput(){
-    printf("Insert %d by %d values for the matrix:\n", nNodes, nNodes);
-
-    for(int i =0; i<nNodes; i++){
-        for(int j=0; j<nNodes; j++){
-            scanf("%d", &theMatrix[i][j] );
-            if(theMatrix[i][j] == 0 && i != j){
-                theMatrix[i][j] = -1;
-            }
-        }
-    }
-}
-
-
 
 void prepareMatrices(){
     int i;
@@ -273,21 +259,20 @@ void printMatrix(){
     printf("---------------------\n");
 }
 
+void dealWithInput(int argc,char* argv[]){
+    if (argc == 2){
+        std::cout << "kaka" << std::endl;
+        freopen(argv[1], "r", stdin);
+    }
+    if (argc <= 2){
 
-int main(int argc, char *argv[]) {
-
-    MPI_Init(&argc, &argv);
-    MPI_Comm_size(MPI_COMM_WORLD, &nProcs);
-    MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
-
-    if(myRank == ROOT){
         printf("Insert number of nodes:\n");
         scanf("%d", &nNodes);
 
         Q = checkIfPossible(nProcs, nNodes);
         if(Q == -1){
             MPI_Abort(MPI_COMM_WORLD, 1);
-            return 1;
+            return;
         }
 
         N_By_Q = nNodes / Q ;
@@ -298,8 +283,30 @@ int main(int argc, char *argv[]) {
             theMatrix[i] = &theMatrixData[i * nNodes];
         }
 
-        dealWithInput();
+        printf("Insert %d by %d values for the matrix:\n", nNodes, nNodes);
 
+        for(int i =0; i<nNodes; i++){
+            for(int j=0; j<nNodes; j++){
+                scanf("%d", &theMatrix[i][j] );
+                if(theMatrix[i][j] == 0 && i != j){
+                    theMatrix[i][j] = -1;
+                }
+            }
+        }
+
+    } else {
+        std::cout << "Too many arguments" << std::endl;
+    }
+}
+
+int main(int argc, char *argv[]) {
+
+    MPI_Init(&argc, &argv);
+    MPI_Comm_size(MPI_COMM_WORLD, &nProcs);
+    MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
+
+    if(myRank == ROOT){
+        dealWithInput(argc, argv);
     }
 
     MPI_Bcast(&nNodes, 1, MPI_INT, ROOT, MPI_COMM_WORLD);
