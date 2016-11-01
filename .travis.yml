@@ -14,6 +14,9 @@ before_install:
  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install open-mpi; fi
 
+env:
+  - CXX=mpic++
+
 script:
   - mkdir build
   - cd build
