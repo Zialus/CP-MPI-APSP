@@ -26,7 +26,7 @@ MPI_Comm cartComm, rowComm, colComm;
 MPI_Status status;
 
 int checkIfPossible(int nProcs, int nNodes){
-    printf("Checking if configuration makes sense....\n");
+    printf("Checking if is possible to apply Fox algorithm...\n");
 
     double doubleQ = sqrt(nProcs);
     int tempQ = (int) doubleQ;
@@ -63,7 +63,7 @@ void localMultiply(int** matrixA, int** matrixB, int** matrixC, int size){
 
 
 void dealWithInput(){
-    printf("Insert matrix values:\n");
+    printf("Insert %d by %d values for the matrix:\n", nNodes, nNodes);
 
     for(int i =0; i<nNodes; i++){
         for(int j=0; j<nNodes; j++){
@@ -78,9 +78,8 @@ void dealWithInput(){
 
 
 void prepareMatrices(){
-    //printf("Starting to prepare matrices... --- ");
     int i;
-    int dims[2];
+    int dimsCart[2] = {Q,Q};
     int period[2] = {1,1};
     int cartCoords[2];
     int dimsSub[2] = {};
@@ -110,8 +109,7 @@ void prepareMatrices(){
         smallMatrixC[i] = &auxMatrix[i*N_By_Q];
     }
 
-    MPI_Dims_create(nProcs, 2, dims);;
-    MPI_Cart_create(MPI_COMM_WORLD, 2, dims, period, 1, &cartComm);
+    MPI_Cart_create(MPI_COMM_WORLD, 2, dimsCart, period, 1, &cartComm);
     MPI_Comm_rank(cartComm, &cartRank);
 
     MPI_Cart_coords(cartComm, cartRank, 2, cartCoords);
@@ -125,13 +123,10 @@ void prepareMatrices(){
     dimsSub[0] = 1;
     dimsSub[1] = 0;
     MPI_Cart_sub(cartComm, dimsSub, &colComm);
-
-    //printf("--- ...Matrices have been prepared\n");
 }
 
 
 void divideTheMatrix(){
-    //printf("Starting to divide the matrices... --- ");
     // rank of process that will receive a particular subMatrix inside the CartGrid
     int rankToSend;
 
@@ -148,13 +143,13 @@ void divideTheMatrix(){
 
                 if(rankToSend == ROOT){
                     for(int ii = i; ii< i+N_By_Q; ii++){
-                        for(int jj = j; jj<j+N_By_Q; jj++){
+                        for(int jj = j; jj< j+N_By_Q; jj++){
                             localMatrix[ii][jj] = theMatrix[ii][jj];
                         }
                     }
                 }
                 else {
-                    MPI_Send(&(theMatrix[i][j]), 1, subMatrix, rankToSend, 1, cartComm);
+                    MPI_Send(&theMatrix[i][j], 1, subMatrix, rankToSend, 1, cartComm);
                 }
 
             }
@@ -165,14 +160,11 @@ void divideTheMatrix(){
     }
 
     MPI_Type_free(&subMatrix);
-
-    //printf("--- ...Matrices have been divided\n");
 }
 
 
 void conquerTheMatrix(){
-    //printf("DIVIDE AND CONQUER MOFOOS\n");
-    int datRank;
+    int rankToRecv;
     MPI_Datatype subMatrix;
     MPI_Type_vector(N_By_Q,N_By_Q,nNodes,MPI_INT, &subMatrix);
     MPI_Type_commit(&subMatrix);
@@ -181,9 +173,9 @@ void conquerTheMatrix(){
         for(int i =0; i<nNodes; i+=N_By_Q){
             for(int j=0; j<nNodes; j+=N_By_Q){
                 int coordsToRank[2] = {i/N_By_Q, j/N_By_Q};
-                MPI_Cart_rank(cartComm, coordsToRank, &datRank);
+                MPI_Cart_rank(cartComm, coordsToRank, &rankToRecv);
 
-                if(datRank == ROOT){
+                if(rankToRecv == ROOT){
                     for(int ii=i; ii<i+N_By_Q; ii++){
                         for(int jj=j; jj<j+N_By_Q; jj++){
                             theMatrix[ii][jj] = localMatrix[ii][jj];
@@ -191,22 +183,19 @@ void conquerTheMatrix(){
                     }
                 }
                 else {
-                    //printf("ELSE DEEEEEEEEZ \n");
-                    MPI_Recv(&theMatrix[i][j], 1, subMatrix, datRank, 1, cartComm, &status);
+                    MPI_Recv(&theMatrix[i][j], 1, subMatrix, rankToRecv, 1, cartComm, &status);
                 }
 
             }
         }
     }
     else{
-        //printf("ELSE NUUUUUUTS \n");
         MPI_Send(localMatrix[0], N_By_Q*N_By_Q, MPI_INT, ROOT, 1, cartComm);
     }
 }
 
 
 void fox() {
-    //printf("WHAT DOES THE FOOOOOX SAY\n");
     int i, j;
     MPI_Datatype littleMatrix;
     MPI_Type_vector(N_By_Q*N_By_Q,1,1,MPI_INT, &littleMatrix);
@@ -261,7 +250,6 @@ void fox() {
 }
 
 void APSP(){
-    //printf("ENTRA NO ASPS \n");
     for (int d = 2; d <= 2*nNodes; d=d*2) {
         fox();
     }
@@ -270,7 +258,8 @@ void APSP(){
 
 
 void printMatrix(){
-    printf("@@@@@@@@@@@@@@\n");
+    printf("---------------------\n");
+    printf("Final solution:\n");
     for (int i = 0; i < nNodes; i++){
         for (int j = 0; j < nNodes; j++){
             if(theMatrix[i][j]==-1){
@@ -281,7 +270,7 @@ void printMatrix(){
             }
         }
     }
-    printf("@@@@@@@@@@@@@@\n");
+    printf("---------------------\n");
 }
 
 
@@ -331,7 +320,7 @@ int main(int argc, char *argv[]) {
     double elapsedTime = finishTime - startTime;
     if(myRank == 0){
         printMatrix();
-        std::cout << elapsedTime << std::endl;
+        std::cout << "Execution time: " << elapsedTime << std::endl;
     }
     MPI_Finalize();
     return 0;
