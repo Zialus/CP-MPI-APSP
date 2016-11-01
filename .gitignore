@@ -28,4 +28,4 @@
 *.out
 *.app
 .idea/
-build/
+cmake-build-debug/

@@ -1,9 +1,6 @@
 //C++
 #include <iostream>
-#include <algorithm>
 //C
-#include <stdio.h>
-#include <stdlib.h>
 #include <math.h>
 //MPI
 #include "mpi.h"
