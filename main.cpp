@@ -258,7 +258,6 @@ void printMatrix(){
 
 void dealWithInput(int argc,char* argv[]){
     if (argc == 2){
-        std::cout << "kaka" << std::endl;
         freopen(argv[1], "r", stdin);
     }
     if (argc <= 2){
