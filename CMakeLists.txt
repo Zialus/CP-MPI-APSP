@@ -14,8 +14,8 @@ target_link_libraries(floyd ${MPI_LIBRARIES})
 
 # Tests:
 enable_testing()
-add_test(6 ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4 floyd ../Tests/Input6.txt)
-add_test(60 ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4 floyd ../Tests/Input60.txt)
-add_test(300 ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4 floyd ../Tests/Input300.txt)
-add_test(900 ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4 floyd ../Tests/Input900.txt)
-add_test(1800 ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4 floyd ../Tests/Input1800.txt)
+add_test(6 mpirun ${MPIEXEC_NUMPROC_FLAG} 4 floyd ../Tests/Input6.txt)
+add_test(60 mpirun ${MPIEXEC_NUMPROC_FLAG} 4 floyd ../Tests/Input60.txt)
+add_test(300 mpirun ${MPIEXEC_NUMPROC_FLAG} 4 floyd ../Tests/Input300.txt)
+add_test(900 mpirun ${MPIEXEC_NUMPROC_FLAG} 4 floyd ../Tests/Input900.txt)
+add_test(1800 mpirun ${MPIEXEC_NUMPROC_FLAG} 4 floyd ../Tests/Input1800.txt)
