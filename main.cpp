@@ -67,8 +67,9 @@ void prepareMatrices(){
     int cartCoords[2];
     int dimsSub[2] = {};
 
+    int* auxMatrix;
 
-    int* auxMatrix = new int[N_By_Q*N_By_Q];
+    auxMatrix = new int[N_By_Q*N_By_Q];
     localMatrix = new int*[N_By_Q];
     for(i=0; i<N_By_Q; i++){
         localMatrix[i] = &auxMatrix[i*N_By_Q];
