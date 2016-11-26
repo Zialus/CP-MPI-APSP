@@ -1,18 +1,7 @@
 language: cpp
-sudo: required
 dist: trusty
-os:
-  - linux
-  - osx
 
-addons:
- apt:
-  packages:
-   - libopenmpi-dev
-   - openmpi-bin
 before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install open-mpi; fi
   - test -n $CC && unset CC
   - test -n $CXX && unset CXX
 
@@ -21,3 +10,17 @@ script:
   - cd build
   - cmake .. && make
   - ctest
+
+matrix:
+  include:
+    - os: linux
+      addons:
+       apt:
+        packages:
+         - libopenmpi-dev
+         - openmpi-bin
+    - os: osx
+      osx_image: xcode8.2
+      before_install:
+        - brew update
+        - brew install open-mpi
