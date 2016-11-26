@@ -1,4 +1,5 @@
 language: cpp
+sudo: required
 dist: trusty
 
 before_install:
@@ -23,4 +24,6 @@ matrix:
       osx_image: xcode8.2
       before_install:
         - brew update
+        - brew cask uninstall oclint
         - brew install open-mpi
+        - brew install cmake
