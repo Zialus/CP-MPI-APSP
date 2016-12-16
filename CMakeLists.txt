@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
+project(cp-mpi-apsp)
 
-project(CP-MPI-ASPS)
+#set(CMAKE_VERBOSE_MAKEFILE true)
 
 # This project requires MPI
 find_package(MPI REQUIRED)
