@@ -1,10 +1,9 @@
 //C++
 #include <iostream>
 //C
-#include <math.h>
+#include <cmath>
 //MPI
 #include "mpi.h"
-
 //Defines
 #define ROOT 0
 
@@ -27,6 +26,7 @@ int checkIfPossible(int nProcs, int nNodes){
 
     double doubleQ = sqrt(nProcs);
     int tempQ = (int) doubleQ;
+
     if (tempQ != doubleQ){
         perror("Can't apply Fox algorithm");
         perror("Number of processors is not a perfect square");

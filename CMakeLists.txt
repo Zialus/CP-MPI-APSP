@@ -11,6 +11,7 @@ include_directories(SYSTEM ${MPI_INCLUDE_PATH})
 set(SOURCE_FILES main.cpp)
 add_executable(floyd ${SOURCE_FILES})
 
+# Link MPI libraries to the executable
 target_link_libraries(floyd ${MPI_LIBRARIES})
 
 # Tests:
