@@ -9,7 +9,8 @@ before_install:
 script:
   - mkdir build
   - cd build
-  - cmake .. && make
+  - cmake ..
+  - make
   - ctest
 
 matrix:
@@ -26,4 +27,3 @@ matrix:
         - brew update
         - brew cask uninstall oclint
         - brew install open-mpi
-        - brew install cmake
