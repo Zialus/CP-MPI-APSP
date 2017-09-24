@@ -22,7 +22,7 @@ MPI_Comm cartComm, rowComm, colComm;
 MPI_Status status;
 
 int checkIfPossible(int nProcs, int nNodes){
-    printf("Checking if is possible to apply Fox algorithm...\n");
+    std::cout << "Checking if is possible to apply Fox algorithm..." << std::endl;
 
     double doubleQ = sqrt(nProcs);
     int tempQ = (int) doubleQ;
@@ -242,8 +242,8 @@ void APSP(){
 
 
 void printMatrix(){
-    printf("---------------------\n");
-    printf("Final solution:\n");
+    std::cout << "---------------------" << std::endl;
+    std::cout << "Final solution:" << std::endl;
     for (int i = 0; i < nNodes; i++){
         for (int j = 0; j < nNodes; j++){
             if(theMatrix[i][j]==-1){
@@ -254,7 +254,7 @@ void printMatrix(){
             }
         }
     }
-    printf("---------------------\n");
+    std::cout << "---------------------" << std::endl;
 }
 
 void dealWithInput(int argc,char* argv[]){
@@ -263,8 +263,8 @@ void dealWithInput(int argc,char* argv[]){
     }
     if (argc <= 2){
 
-        printf("Insert number of nodes:\n");
-        scanf("%d", &nNodes);
+        std::cout << "Insert number of nodes:" << std::endl;
+        std::cin >> nNodes;
 
         Q = checkIfPossible(nProcs, nNodes);
         if(Q == -1){
@@ -280,11 +280,11 @@ void dealWithInput(int argc,char* argv[]){
             theMatrix[i] = &theMatrixData[i * nNodes];
         }
 
-        printf("Insert %d by %d values for the matrix:\n", nNodes, nNodes);
+        std::cout << "Insert " << nNodes << " by " << nNodes << " values for the matrix:" << std::endl;
 
         for(int i =0; i<nNodes; i++){
             for(int j=0; j<nNodes; j++){
-                scanf("%d", &theMatrix[i][j] );
+                std::cin >> theMatrix[i][j] ;
                 if(theMatrix[i][j] == 0 && i != j){
                     theMatrix[i][j] = -1;
                 }
