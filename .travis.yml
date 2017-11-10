@@ -1,6 +1,6 @@
 language: cpp
-sudo: required
 dist: trusty
+sudo: required
 
 before_install:
   - test -n $CC && unset CC
@@ -9,7 +9,7 @@ before_install:
 script:
   - mkdir build
   - cd build
-  - cmake ..
+  - cmake -D CMAKE_BUILD_TYPE=Release ..
   - make
   - ctest
 
@@ -22,7 +22,7 @@ matrix:
          - libopenmpi-dev
          - openmpi-bin
     - os: osx
-      osx_image: xcode9
+      osx_image: xcode9.2
       before_install:
         - brew update
         - brew cask uninstall oclint
