@@ -7,6 +7,7 @@ before_install:
   - test -n $CXX && unset CXX
 
 script:
+  - mpirun --version
   - mkdir build
   - cd build
   - cmake -D CMAKE_BUILD_TYPE=Release ..
