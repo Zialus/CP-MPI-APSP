@@ -8,7 +8,7 @@ script:
   - cd build
   - cmake -D CMAKE_BUILD_TYPE=Release ..
   - make
-  - ctest
+  - ctest -V
 
 matrix:
   include:
