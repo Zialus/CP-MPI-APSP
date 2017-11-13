@@ -1,5 +1,6 @@
 //C++
 #include <iostream>
+#include <fstream>
 //C
 #include <cmath>
 //MPI
@@ -21,6 +22,28 @@ int myRow, myCol;
 MPI_Comm cartComm, rowComm, colComm;
 MPI_Status status;
 
+template<typename InputIterator1, typename InputIterator2>
+bool range_equal(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2) {
+    while (first1 != last1 && first2 != last2) {
+        if (*first1 != *first2) { return false; }
+        ++first1;
+        ++first2;
+    }
+    return (first1 == last1) && (first2 == last2);
+}
+
+bool compare_files(const std::string& filename1, const std::string& filename2) {
+    std::ifstream file1(filename1);
+    std::ifstream file2(filename2);
+
+    std::istreambuf_iterator<char> begin1(file1);
+    std::istreambuf_iterator<char> begin2(file2);
+
+    std::istreambuf_iterator<char> end;
+
+    return range_equal(begin1, end, begin2, end);
+}
+
 int checkIfPossible(int nProcs, int nNodes){
     std::cout << "Checking if is possible to apply Fox algorithm..." << std::endl;
 
@@ -39,6 +62,7 @@ int checkIfPossible(int nProcs, int nNodes){
         return -1;
     }
 
+    std::cout << "...Fox algorithm can be applied!" << std::endl;
     return tempQ;
 }
 
@@ -58,7 +82,15 @@ void localMultiply(int** matrixA, int** matrixB, int** matrixC, int size){
     }
 }
 
+void freeMemory() {
+    delete[] theMatrix;
+    delete[] theMatrixData;
 
+    delete[] localMatrix;
+    delete[] smallMatrixA;
+    delete[] smallMatrixB;
+    delete[] smallMatrixC;
+}
 
 void prepareMatrices(){
     int i;
@@ -221,6 +253,7 @@ void fox() {
         }
 
         MPI_Sendrecv_replace(smallMatrixB[0], 1, littleMatrix, dest, 1, source, 1, colComm, &status);
+
     }
 
     MPI_Type_free(&littleMatrix);
@@ -241,35 +274,32 @@ void APSP(){
 
 
 
-void printMatrix(){
-    std::cout << "---------------------" << std::endl;
-    std::cout << "Final solution:" << std::endl;
+void printMatrix(FILE* file){
+    std::cout << "Printing solution to file... ";
     for (int i = 0; i < nNodes; i++){
         for (int j = 0; j < nNodes; j++){
             if(theMatrix[i][j]==-1){
-                printf("0%c", j == nNodes - 1 ? '\n' : ' ');
+                fprintf(file,"0%c", j == nNodes - 1 ? '\n' : ' ');
             }
             else{
-                printf("%d%c", theMatrix[i][j], j == nNodes - 1 ? '\n' : ' ');
+                fprintf(file,"%d%c", theMatrix[i][j], j == nNodes - 1 ? '\n' : ' ');
             }
         }
     }
-    std::cout << "---------------------" << std::endl;
+    std::cout << "DONE!" << std::endl;
 }
 
-void dealWithInput(int argc,char* argv[]){
-    if (argc == 2){
+void dealWithInput(int argc,char* const* argv){
+    if (argc == 3){
+
         freopen(argv[1], "r", stdin);
-    }
-    if (argc <= 2){
 
         std::cout << "Insert number of nodes:" << std::endl;
         std::cin >> nNodes;
 
         Q = checkIfPossible(nProcs, nNodes);
         if(Q == -1){
-            MPI_Abort(MPI_COMM_WORLD, 1);
-            return;
+            MPI_Abort(MPI_COMM_WORLD, 0);
         }
 
         N_By_Q = nNodes / Q ;
@@ -292,8 +322,21 @@ void dealWithInput(int argc,char* argv[]){
         }
 
     } else {
-        std::cout << "Too many arguments" << std::endl;
+        std::cout << "Wrong number of arguments" << std::endl;
+        MPI_Abort(MPI_COMM_WORLD, 1);
     }
+}
+
+void dealWithOutput(char* const* argv, double elapsedTime) {
+    const char* outfile = "tmp.txt";
+    std::string expected_file = argv[2];
+    FILE* file = fopen(outfile, "w");
+    printMatrix(file);
+    fclose(file);
+    std::cout << "Comparing the output... ";
+    std::string result = compare_files(outfile, expected_file) ? "CORRECT OUTPUT" : "WRONG OUTPUT";
+    std::cout << result << "!" << std::endl;
+    std::cout << "The execution time was: " << elapsedTime << std::endl;
 }
 
 int main(int argc, char *argv[]) {
@@ -322,10 +365,12 @@ int main(int argc, char *argv[]) {
     double finishTime = MPI_Wtime();
 
     double elapsedTime = finishTime - startTime;
-    if(myRank == 0){
-        printMatrix();
-        std::cout << "Execution time: " << elapsedTime << std::endl;
+
+    if(myRank == ROOT){
+        dealWithOutput(argv, elapsedTime);
     }
+
+    freeMemory();
     MPI_Finalize();
     return 0;
 }
