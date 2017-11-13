@@ -1,6 +1,7 @@
 //C++
 #include <iostream>
 #include <fstream>
+#include <string>
 //C
 #include <cmath>
 #include <cstring>

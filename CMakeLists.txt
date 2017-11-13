@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.0)
 project(cp-mpi-apsp)
 
+set(CMAKE_CXX_STANDARD 11)
+
 # This project requires MPI
 find_package(MPI REQUIRED)
 include_directories(SYSTEM ${MPI_INCLUDE_PATH})
