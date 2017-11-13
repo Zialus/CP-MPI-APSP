@@ -294,7 +294,7 @@ void printMatrix(FILE* file){
 void dealWithInput(int argc,char* const* argv){
     if (argc == 3){
 
-        if (freopen(argv[1], "r", stdin)){
+        if (freopen(argv[1], "r", stdin) == nullptr) {
             perror("freopen() failed");
             MPI_Abort(MPI_COMM_WORLD, 1);
         };
