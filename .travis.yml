@@ -23,7 +23,7 @@ matrix:
         - brew update
         - brew cask uninstall oclint
         - brew install open-mpi
-        - export EXTRAFLAG=--oversubscribe
+        - export EXTRA_FLAG=--oversubscribe
     - os: linux
       before_install:
         - sudo sed -i 's/trusty/zesty/g' /etc/apt/sources.list

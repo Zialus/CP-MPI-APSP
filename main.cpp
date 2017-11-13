@@ -294,7 +294,10 @@ void printMatrix(FILE* file){
 void dealWithInput(int argc,char* const* argv){
     if (argc == 3){
 
-        freopen(argv[1], "r", stdin);
+        if (freopen(argv[1], "r", stdin)){
+            perror("freopen() failed");
+            MPI_Abort(MPI_COMM_WORLD, 1);
+        };
 
         std::cout << "Insert number of nodes:" << std::endl;
         std::cin >> nNodes;
