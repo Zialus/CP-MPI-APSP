@@ -10,16 +10,16 @@
 //Defines
 #define ROOT 0
 
-int **theMatrix;
-int *theMatrixData;
+int** theMatrix;
+int* theMatrixData;
 
-int **localMatrix;
-int **smallMatrixA;
-int **smallMatrixB;
-int **smallMatrixC;
+int** localMatrix;
+int** smallMatrixA;
+int** smallMatrixB;
+int** smallMatrixC;
 
 int myRank, cartRank;
-int Q,nProcs, nNodes, N_By_Q;
+int Q, nProcs, nNodes, N_By_Q;
 int myRow, myCol;
 MPI_Comm cartComm, rowComm, colComm;
 MPI_Status status;
@@ -46,19 +46,19 @@ bool compare_files(const std::string& filename1, const std::string& filename2) {
     return range_equal(begin1, end, begin2, end);
 }
 
-int checkIfPossible(int nProcs, int nNodes){
+int checkIfPossible(int nProcs, int nNodes) {
     std::cout << "Checking if is possible to apply Fox algorithm..." << std::endl;
 
     double doubleQ = sqrt(nProcs);
     int tempQ = (int) doubleQ;
 
-    if (tempQ != doubleQ){
+    if (tempQ != doubleQ) {
         perror("Can't apply Fox algorithm");
         perror("Number of processors is not a perfect square");
         return -1;
     }
 
-    if(nNodes%tempQ != 0){
+    if (nNodes % tempQ != 0) {
         perror("Can't apply Fox algorithm");
         perror("Number of nodes is not divisible by the square root of the number of processors");
         return -1;
@@ -69,14 +69,13 @@ int checkIfPossible(int nProcs, int nNodes){
 }
 
 
-void localMultiply(int** matrixA, int** matrixB, int** matrixC, int size){
-    for(int i=0; i<size; i++ ){
-        for(int j=0; j<size; j++){
-            for(int k=0; k<size; k++){
-                if(matrixA[i][k] != -1 && matrixB[k][j] != -1 && matrixC[i][j] != -1) {
+void localMultiply(int** matrixA, int** matrixB, int** matrixC, int size) {
+    for (int i = 0; i < size; i++) {
+        for (int j = 0; j < size; j++) {
+            for (int k = 0; k < size; k++) {
+                if (matrixA[i][k] != -1 && matrixB[k][j] != -1 && matrixC[i][j] != -1) {
                     matrixC[i][j] = std::min(matrixC[i][j], matrixA[i][k] + matrixB[k][j]);
-                }
-                else if(matrixA[i][k] != -1 && matrixB[k][j] != -1 ){
+                } else if (matrixA[i][k] != -1 && matrixB[k][j] != -1) {
                     matrixC[i][j] = matrixA[i][k] + matrixB[k][j];
                 }
             }
@@ -94,37 +93,37 @@ void freeMemory() {
     delete[] smallMatrixC;
 }
 
-void prepareMatrices(){
+void prepareMatrices() {
     int i;
-    int dimsCart[2] = {Q,Q};
-    int period[2] = {1,1};
+    int dimsCart[2] = {Q, Q};
+    int period[2] = {1, 1};
     int cartCoords[2];
     int dimsSub[2] = {};
 
     int* auxMatrix;
 
-    auxMatrix = new int[N_By_Q*N_By_Q];
-    localMatrix = new int*[N_By_Q];
-    for(i=0; i<N_By_Q; i++){
-        localMatrix[i] = &auxMatrix[i*N_By_Q];
+    auxMatrix = new int[N_By_Q * N_By_Q];
+    localMatrix = new int* [N_By_Q];
+    for (i = 0; i < N_By_Q; i++) {
+        localMatrix[i] = &auxMatrix[i * N_By_Q];
     }
 
-    auxMatrix = new int[N_By_Q*N_By_Q];
-    smallMatrixA = new int*[N_By_Q];
-    for(i=0; i<N_By_Q;i++){
-        smallMatrixA[i] = &auxMatrix[i*N_By_Q];
+    auxMatrix = new int[N_By_Q * N_By_Q];
+    smallMatrixA = new int* [N_By_Q];
+    for (i = 0; i < N_By_Q; i++) {
+        smallMatrixA[i] = &auxMatrix[i * N_By_Q];
     }
 
-    auxMatrix = new int[N_By_Q*N_By_Q];
-    smallMatrixB = new int*[N_By_Q];
-    for(i=0; i<N_By_Q; i++){
-        smallMatrixB[i] = &auxMatrix[i*N_By_Q];
+    auxMatrix = new int[N_By_Q * N_By_Q];
+    smallMatrixB = new int* [N_By_Q];
+    for (i = 0; i < N_By_Q; i++) {
+        smallMatrixB[i] = &auxMatrix[i * N_By_Q];
     }
 
-    auxMatrix = new int[N_By_Q*N_By_Q];
-    smallMatrixC = new int*[N_By_Q];
-    for(i=0; i<N_By_Q; i++){
-        smallMatrixC[i] = &auxMatrix[i*N_By_Q];
+    auxMatrix = new int[N_By_Q * N_By_Q];
+    smallMatrixC = new int* [N_By_Q];
+    for (i = 0; i < N_By_Q; i++) {
+        smallMatrixC[i] = &auxMatrix[i * N_By_Q];
     }
 
     MPI_Cart_create(MPI_COMM_WORLD, 2, dimsCart, period, 1, &cartComm);
@@ -144,71 +143,67 @@ void prepareMatrices(){
 }
 
 
-void divideTheMatrix(){
+void divideTheMatrix() {
     // rank of process that will receive a particular subMatrix inside the CartGrid
     int rankToSend;
 
     MPI_Datatype subMatrix;
-    MPI_Type_vector(N_By_Q,N_By_Q,nNodes,MPI_INT, &subMatrix);
+    MPI_Type_vector(N_By_Q, N_By_Q, nNodes, MPI_INT, &subMatrix);
     MPI_Type_commit(&subMatrix);
 
-    if(myRank == ROOT){
-        for(int i =0; i<nNodes; i+=N_By_Q){
-            for(int j=0; j<nNodes; j+=N_By_Q){
-                int coordsToRank[2] = {i/N_By_Q, j/N_By_Q};
+    if (myRank == ROOT) {
+        for (int i = 0; i < nNodes; i += N_By_Q) {
+            for (int j = 0; j < nNodes; j += N_By_Q) {
+                int coordsToRank[2] = {i / N_By_Q, j / N_By_Q};
 
                 MPI_Cart_rank(cartComm, coordsToRank, &rankToSend);
 
-                if(rankToSend == ROOT){
-                    for(int ii = i; ii< i+N_By_Q; ii++){
-                        for(int jj = j; jj< j+N_By_Q; jj++){
+                if (rankToSend == ROOT) {
+                    for (int ii = i; ii < i + N_By_Q; ii++) {
+                        for (int jj = j; jj < j + N_By_Q; jj++) {
                             localMatrix[ii][jj] = theMatrix[ii][jj];
                         }
                     }
-                }
-                else {
+                } else {
                     MPI_Send(&theMatrix[i][j], 1, subMatrix, rankToSend, 1, cartComm);
                 }
 
             }
         }
-    }
-    else{
-        MPI_Recv(localMatrix[0], N_By_Q*N_By_Q, MPI_INT, ROOT, 1, cartComm, &status);
+    } else {
+        MPI_Recv(localMatrix[0], N_By_Q * N_By_Q, MPI_INT, ROOT, 1, cartComm, &status);
     }
 
     MPI_Type_free(&subMatrix);
 }
 
 
-void conquerTheMatrix(){
+void conquerTheMatrix() {
     int rankToRecv;
     MPI_Datatype subMatrix;
-    MPI_Type_vector(N_By_Q,N_By_Q,nNodes,MPI_INT, &subMatrix);
+    MPI_Type_vector(N_By_Q, N_By_Q, nNodes, MPI_INT, &subMatrix);
     MPI_Type_commit(&subMatrix);
 
-    if(myRank == ROOT){
-        for(int i =0; i<nNodes; i+=N_By_Q){
-            for(int j=0; j<nNodes; j+=N_By_Q){
-                int coordsToRank[2] = {i/N_By_Q, j/N_By_Q};
+    if (myRank == ROOT) {
+        for (int i = 0; i < nNodes; i += N_By_Q) {
+            for (int j = 0; j < nNodes; j += N_By_Q) {
+                int coordsToRank[2] = {i / N_By_Q, j / N_By_Q};
                 MPI_Cart_rank(cartComm, coordsToRank, &rankToRecv);
 
-                if(rankToRecv == ROOT){
-                    for(int ii=i; ii<i+N_By_Q; ii++){
-                        for(int jj=j; jj<j+N_By_Q; jj++){
+                if (rankToRecv == ROOT) {
+                    for (int ii = i; ii < i + N_By_Q; ii++) {
+                        for (int jj = j; jj < j + N_By_Q; jj++) {
                             theMatrix[ii][jj] = localMatrix[ii][jj];
                         }
                     }
-                }
-                else {
+                } else {
                     MPI_Recv(&theMatrix[i][j], 1, subMatrix, rankToRecv, 1, cartComm, &status);
                 }
 
             }
         }
-    }
-    else{
-        MPI_Send(localMatrix[0], N_By_Q*N_By_Q, MPI_INT, ROOT, 1, cartComm);
+    } else {
+        MPI_Send(localMatrix[0], N_By_Q * N_By_Q, MPI_INT, ROOT, 1, cartComm);
     }
 }
 
@@ -216,7 +211,7 @@ void conquerTheMatrix(){
 void fox() {
     int i, j;
     MPI_Datatype littleMatrix;
-    MPI_Type_vector(N_By_Q*N_By_Q,1,1,MPI_INT, &littleMatrix);
+    MPI_Type_vector(N_By_Q * N_By_Q, 1, 1, MPI_INT, &littleMatrix);
     MPI_Type_commit(&littleMatrix);
 
     // Calculate indices of matrices above and below (on the same column)
@@ -226,14 +221,14 @@ void fox() {
     // Save their ranks on rankUP and rankDOWN
     int rankUP, rankDOWN;
     int coords[1];
-    coords[0]= source;
-    MPI_Cart_rank(colComm,coords,&rankUP);
-    coords[0]= dest;
-    MPI_Cart_rank(colComm,coords,&rankDOWN);
+    coords[0] = source;
+    MPI_Cart_rank(colComm, coords, &rankUP);
+    coords[0] = dest;
+    MPI_Cart_rank(colComm, coords, &rankDOWN);
 
 
-    for(i = 0; i < N_By_Q; i++){
-        for(j = 0; j < N_By_Q; j++){
+    for (i = 0; i < N_By_Q; i++) {
+        for (j = 0; j < N_By_Q; j++) {
             smallMatrixB[i][j] = localMatrix[i][j];
             smallMatrixC[i][j] = localMatrix[i][j];
         }
@@ -246,11 +241,10 @@ void fox() {
         int bcastROOTrank;
         MPI_Cart_rank(rowComm, coords, &bcastROOTrank);
         if (bcastROOT == myCol) {
-            MPI_Bcast(localMatrix[0],1,littleMatrix,bcastROOTrank,rowComm);
+            MPI_Bcast(localMatrix[0], 1, littleMatrix, bcastROOTrank, rowComm);
             localMultiply(localMatrix, smallMatrixB, smallMatrixC, N_By_Q);
-        }
-        else {
-            MPI_Bcast(smallMatrixA[0],1,littleMatrix,bcastROOTrank,rowComm);
+        } else {
+            MPI_Bcast(smallMatrixA[0], 1, littleMatrix, bcastROOTrank, rowComm);
             localMultiply(smallMatrixA, smallMatrixB, smallMatrixC, N_By_Q);
         }
 
@@ -260,39 +254,37 @@ void fox() {
 
     MPI_Type_free(&littleMatrix);
 
-    for (i = 0; i < N_By_Q; i++){
-        for(j = 0; j < N_By_Q; j++){
+    for (i = 0; i < N_By_Q; i++) {
+        for (j = 0; j < N_By_Q; j++) {
             localMatrix[i][j] = smallMatrixC[i][j];
         }
     }
 
 }
 
-void APSP(){
-    for (int d = 2; d <= 2*nNodes; d=d*2) {
+void APSP() {
+    for (int d = 2; d <= 2 * nNodes; d = d * 2) {
         fox();
     }
 }
 
 
-
-void printMatrix(FILE* file){
+void printMatrix(FILE* file) {
     std::cout << "Printing solution to file... ";
-    for (int i = 0; i < nNodes; i++){
-        for (int j = 0; j < nNodes; j++){
-            if(theMatrix[i][j]==-1){
-                fprintf(file,"0%c", j == nNodes - 1 ? '\n' : ' ');
-            }
-            else{
-                fprintf(file,"%d%c", theMatrix[i][j], j == nNodes - 1 ? '\n' : ' ');
+    for (int i = 0; i < nNodes; i++) {
+        for (int j = 0; j < nNodes; j++) {
+            if (theMatrix[i][j] == -1) {
+                fprintf(file, "0%c", j == nNodes - 1 ? '\n' : ' ');
+            } else {
+                fprintf(file, "%d%c", theMatrix[i][j], j == nNodes - 1 ? '\n' : ' ');
             }
         }
     }
     std::cout << "DONE!" << std::endl;
 }
 
-void dealWithInput(int argc,char* const* argv){
-    if (argc == 3){
+void dealWithInput(int argc, char* const* argv) {
+    if (argc == 3) {
 
         if (freopen(argv[1], "r", stdin) == nullptr) {
             perror("freopen() failed");
@@ -303,24 +295,24 @@ void dealWithInput(int argc,char* const* argv){
         std::cin >> nNodes;
 
         Q = checkIfPossible(nProcs, nNodes);
-        if(Q == -1){
+        if (Q == -1) {
             MPI_Abort(MPI_COMM_WORLD, 0);
         }
 
-        N_By_Q = nNodes / Q ;
+        N_By_Q = nNodes / Q;
 
-        theMatrix = new int*[nNodes];
-        theMatrixData = new int[nNodes*nNodes];
-        for (int i = 0; i < nNodes ; ++i) {
+        theMatrix = new int* [nNodes];
+        theMatrixData = new int[nNodes * nNodes];
+        for (int i = 0; i < nNodes; ++i) {
             theMatrix[i] = &theMatrixData[i * nNodes];
         }
 
         std::cout << "Insert " << nNodes << " by " << nNodes << " values for the matrix:" << std::endl;
 
-        for(int i =0; i<nNodes; i++){
-            for(int j=0; j<nNodes; j++){
-                std::cin >> theMatrix[i][j] ;
-                if(theMatrix[i][j] == 0 && i != j){
+        for (int i = 0; i < nNodes; i++) {
+            for (int j = 0; j < nNodes; j++) {
+                std::cin >> theMatrix[i][j];
+                if (theMatrix[i][j] == 0 && i != j) {
                     theMatrix[i][j] = -1;
                 }
             }
@@ -344,13 +336,13 @@ void dealWithOutput(char* const* argv, double elapsedTime) {
     std::cout << "The execution time was: " << elapsedTime << std::endl;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
 
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &nProcs);
     MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
 
-    if(myRank == ROOT){
+    if (myRank == ROOT) {
         dealWithInput(argc, argv);
     }
 
@@ -371,7 +363,7 @@ int main(int argc, char *argv[]) {
 
     double elapsedTime = finishTime - startTime;
 
-    if(myRank == ROOT){
+    if (myRank == ROOT) {
         dealWithOutput(argv, elapsedTime);
     }
 
