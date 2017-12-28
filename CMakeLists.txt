@@ -12,7 +12,7 @@ message(STATUS "Max number of procs in this machine is: " ${MPIEXEC_MAX_NUMPROCS
 
 # Set executable name and list the files with source code
 set(EXEC floyd)
-set(SOURCE_FILES main.cpp)
+set(SOURCE_FILES src/main.cpp)
 add_executable(${EXEC} ${SOURCE_FILES})
 
 # Link MPI libraries to the executable

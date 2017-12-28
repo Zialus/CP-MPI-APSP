@@ -11,16 +11,17 @@ install:
   # Install MS-MPI
   - ps: Start-FileDownload 'https://download.microsoft.com/download/9/E/D/9ED82A62-4235-4003-A59A-9F6246073F2E/MSMpiSetup.exe'
   - MSMpiSetup.exe -unattend
-  - set PATH=C:\Program Files\Microsoft MPI\Bin;%PATH%
+  # - set PATH=C:\Program Files\Microsoft MPI\Bin;%PATH%
 
   # Install MS-MPI SDK
   - ps: Start-FileDownload 'https://download.microsoft.com/download/9/E/D/9ED82A62-4235-4003-A59A-9F6246073F2E/msmpisdk.msi'
   - msmpisdk.msi /passive
-  - set PATH=C:\Program Files\Microsoft MPI\Bin;%PATH%
+  # - set PATH=C:\Program Files\Microsoft MPI\Bin;%PATH%
 
 build_script:
+  - set MSMPI
   - mkdir build && cd build
-  - cmake ..
+  - cmake .. -DMPI_C_INCLUDE_PATH="C:\Program Files (x86)\Microsoft SDKs\MPI\Include" -DMPI_C_LIBRARIES="C:\Program Files (x86)\Microsoft SDKs\MPI\Lib\x86\msmpi.lib" -DMPI_CXX_LIBRARIES="C:\Program Files (x86)\Microsoft SDKs\MPI\Lib\x86\msmpi.lib" -DMPI_CXX_INCLUDE_PATH="C:\Program Files (x86)\Microsoft SDKs\MPI\Include"
   - cmake --build . --config Release
 
 test_script:
