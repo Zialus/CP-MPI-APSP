@@ -14,8 +14,6 @@ matrix:
   include:
     - os: linux
       before_install:
-        - sudo sed -i 's/trusty/artful/g' /etc/apt/sources.list
-        - sudo apt-get update -y
         - sudo apt-get install libopenmpi-dev openmpi-bin
     - os: osx
       osx_image: xcode9.3
@@ -26,8 +24,6 @@ matrix:
         - export EXTRA_FLAG=--oversubscribe
     - os: linux
       before_install:
-        - sudo sed -i 's/trusty/artful/g' /etc/apt/sources.list
-        - sudo apt-get update -y
         - sudo apt-get install libmpich-dev mpich
     - os: osx
       osx_image: xcode9.3
