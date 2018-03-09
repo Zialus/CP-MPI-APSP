@@ -11,7 +11,7 @@ message(STATUS "EXTRA_FLAG has been set as: " $ENV{EXTRA_FLAG})
 message(STATUS "Max number of procs in this machine is: " ${MPIEXEC_MAX_NUMPROCS})
 
 # Set executable name and list the files with source code
-set(EXECUTABLE_OUTPUT_PATH "${CMAKE_SOURCE_DIR}/exec/")
+set(EXECUTABLE_OUTPUT_PATH "${CMAKE_SOURCE_DIR}/exec")
 set(EXEC floyd)
 set(SOURCE_FILES src/main.cpp)
 add_executable(${EXEC} ${SOURCE_FILES})
