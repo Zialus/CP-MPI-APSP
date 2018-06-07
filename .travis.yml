@@ -1,5 +1,5 @@
 language: cpp
-dist: trusty
+dist: xenial
 sudo: required
 
 script:
@@ -14,12 +14,9 @@ matrix:
   include:
     - os: linux
       before_install:
-        # older versions of openmpi have a strange behaviour when calling MPI_Abort()
-        - sudo sed -i 's/trusty/xenial/g' /etc/apt/sources.list
-        - sudo apt-get update -y
         - sudo apt-get install libopenmpi-dev openmpi-bin
     - os: osx
-      osx_image: xcode9.3
+      osx_image: xcode9.4
       before_install:
         - brew update
         - brew cask uninstall oclint
@@ -29,7 +26,7 @@ matrix:
       before_install:
         - sudo apt-get install libmpich-dev mpich
     - os: osx
-      osx_image: xcode9.3
+      osx_image: xcode9.4
       before_install:
         - brew update
         - brew cask uninstall oclint
