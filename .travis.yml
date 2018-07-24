@@ -1,5 +1,6 @@
 language: cpp
 dist: xenial
+osx_image: xcode9.4
 sudo: required
 
 script:
@@ -17,7 +18,6 @@ matrix:
       before_install:
         - sudo apt-get install libopenmpi-dev openmpi-bin
     - os: osx
-      osx_image: xcode9
       before_install:
         - brew update
         - brew cask uninstall oclint
@@ -27,7 +27,6 @@ matrix:
       before_install:
         - sudo apt-get install libmpich-dev mpich
     - os: osx
-      osx_image: xcode9
       before_install:
         - brew update
         - brew cask uninstall oclint
