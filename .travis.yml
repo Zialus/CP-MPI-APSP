@@ -21,6 +21,7 @@ matrix:
       before_install:
         - brew update
         - brew cask uninstall oclint
+        - brew upgrade
         - brew install open-mpi
         - export EXTRA_FLAG=--oversubscribe
     - os: linux
@@ -30,4 +31,5 @@ matrix:
       before_install:
         - brew update
         - brew cask uninstall oclint
+        - brew upgrade
         - brew install mpich
