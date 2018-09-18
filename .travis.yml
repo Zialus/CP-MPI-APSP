@@ -1,6 +1,7 @@
 language: cpp
 dist: xenial
 osx_image: xcode10
+sudo: required
 
 script:
   - mpirun --version
