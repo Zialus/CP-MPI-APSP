@@ -1,6 +1,5 @@
 language: cpp
 dist: xenial
-osx_image: xcode10
 sudo: required
 
 script:
@@ -18,20 +17,23 @@ matrix:
       addons:
         apt:
           packages:
-          - libopenmpi-dev openmpi-bin
+            - libopenmpi-dev openmpi-bin
     - os: osx
+      osx_image: xcode10
       before_install:
         - brew upgrade
         - brew cask uninstall oclint
       install:
         - brew install open-mpi
-        - export EXTRA_FLAG=--oversubscribe
+      env:
+        - EXTRA_FLAG=--oversubscribe
     - os: linux
       addons:
         apt:
           packages:
-          - libmpich-dev mpich
+            - libmpich-dev mpich
     - os: osx
+      osx_image: xcode10
       before_install:
         - brew upgrade
         - brew cask uninstall oclint
