@@ -18,22 +18,29 @@ matrix:
         apt:
           packages:
             - libopenmpi-dev openmpi-bin
+      env:
+        - ==OPENMPI==
     - os: osx
       osx_image: xcode10
       before_install:
         - brew cask uninstall oclint
       install:
         - brew install open-mpi
+        - export EXTRA_FLAG=--oversubscribe
       env:
-        - EXTRA_FLAG=--oversubscribe
+        - ==OPENMPI==
     - os: linux
       addons:
         apt:
           packages:
             - libmpich-dev mpich
+      env:
+        - ==MPICH==
     - os: osx
       osx_image: xcode10
       before_install:
         - brew cask uninstall oclint
       install:
         - brew install mpich
+      env:
+        - ==MPICH==

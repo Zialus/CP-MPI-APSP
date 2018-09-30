@@ -4,11 +4,6 @@ image:
   - Visual Studio 2013
 
 install:
-  # Install a recent CMake
-  - choco upgrade cmake
-  - set path=C:\Program Files\CMake\bin;%path%
-  - cmake --version
-
   # Install MS-MPI
   - ps: Start-FileDownload 'https://download.microsoft.com/download/9/E/D/9ED82A62-4235-4003-A59A-9F6246073F2E/MSMpiSetup.exe'
   - MSMpiSetup.exe -unattend -full
@@ -20,11 +15,11 @@ install:
   - set MSMPI_INC=C:\Program Files (x86)\Microsoft SDKs\MPI\Include\
   - set MSMPI_LIB32=C:\Program Files (x86)\Microsoft SDKs\MPI\Lib\x86\
   - set MSMPI_LIB64=C:\Program Files (x86)\Microsoft SDKs\MPI\Lib\x64\
-
+  - set MSMPI
   - set PATH=C:\Program Files\Microsoft MPI\Bin;%PATH%
 
 build_script:
-  - set MSMPI
+  - cmake --version
   - mkdir build && cd build
   - cmake ..
   - cmake --build . --config Release
