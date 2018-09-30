@@ -1,24 +1,29 @@
-cmake_minimum_required(VERSION 3.0)
+##### GENERAL CONFIG ZONE #####
+
+cmake_minimum_required(VERSION 3.9)
 project(cp-mpi-apsp)
 
 set(CMAKE_CXX_STANDARD 11)
 
-# This project requires MPI
-find_package(MPI REQUIRED)
-include_directories(SYSTEM ${MPI_INCLUDE_PATH})
+#set(CMAKE_VERBOSE_MAKEFILE ON)
 
+find_package(MPI REQUIRED)
+
+# Some configs might need "--oversubscribe" flag
 message(STATUS "EXTRA_FLAG has been set as: " $ENV{EXTRA_FLAG})
 message(STATUS "Max number of procs in this machine is: " ${MPIEXEC_MAX_NUMPROCS})
 
-# Set executable name and list the files with source code
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/exec")
+
+##### EXECUTABLE ZONE #####
 set(SOURCE_FILES src/main.cpp)
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/exec")
+
 add_executable(floyd ${SOURCE_FILES})
+target_link_libraries(floyd MPI::MPI_CXX)
 
-# Link MPI libraries to the executable
-target_link_libraries(floyd ${MPI_LIBRARIES})
 
-# Tests:
+##### TESTS ZONE #####
 enable_testing()
 add_test(NAME 1617_12 COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4 $ENV{EXTRA_FLAG} $<TARGET_FILE:floyd> ${CMAKE_SOURCE_DIR}/tests/1617/input12 ${CMAKE_SOURCE_DIR}/tests/1617/output12)
 add_test(NAME 1617_60 COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4 $ENV{EXTRA_FLAG} $<TARGET_FILE:floyd> ${CMAKE_SOURCE_DIR}/tests/1617/input60 ${CMAKE_SOURCE_DIR}/tests/1617/output60)
@@ -31,6 +36,5 @@ add_test(NAME 1718_600 COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4 $ENV{EXTRA_F
 add_test(NAME 1718_900 COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4 $ENV{EXTRA_FLAG} $<TARGET_FILE:floyd> ${CMAKE_SOURCE_DIR}/tests/1718/input900 ${CMAKE_SOURCE_DIR}/tests/1718/output900)
 add_test(NAME 1718_1200 COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4 $ENV{EXTRA_FLAG} $<TARGET_FILE:floyd> ${CMAKE_SOURCE_DIR}/tests/1718/input1200 ${CMAKE_SOURCE_DIR}/tests/1718/output1200)
 
-
-# add_test(1800 ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4 $ENV{EXTRA_FLAG} $<TARGET_FILE:floyd> ${CMAKE_SOURCE_DIR}/tests/something/input1800)
-# add_test(2700 ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4 $ENV{EXTRA_FLAG} $<TARGET_FILE:floyd> ${CMAKE_SOURCE_DIR}/tests/something/input2700)
+#add_test(1800 ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4 $ENV{EXTRA_FLAG} $<TARGET_FILE:floyd> ${CMAKE_SOURCE_DIR}/tests/something/input1800)
+#add_test(2700 ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4 $ENV{EXTRA_FLAG} $<TARGET_FILE:floyd> ${CMAKE_SOURCE_DIR}/tests/something/input2700)
