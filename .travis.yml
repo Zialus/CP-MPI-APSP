@@ -1,6 +1,5 @@
 language: cpp
 dist: xenial
-sudo: required
 
 script:
   - mpirun --version
@@ -21,14 +20,14 @@ matrix:
       env:
         - ==OPENMPI==
     - os: osx
-      osx_image: xcode10
-      before_install:
-        - brew cask uninstall oclint
-      install:
-        - brew install open-mpi
-        - export EXTRA_FLAG=--oversubscribe
+      osx_image: xcode10.1
+      addons:
+        homebrew:
+          packages:
+            - open-mpi
       env:
         - ==OPENMPI==
+        - EXTRA_FLAG=--oversubscribe
     - os: linux
       addons:
         apt:
@@ -37,10 +36,10 @@ matrix:
       env:
         - ==MPICH==
     - os: osx
-      osx_image: xcode10
-      before_install:
-        - brew cask uninstall oclint
-      install:
-        - brew install mpich
+      osx_image: xcode10.1
+      addons:
+        homebrew:
+          packages:
+            - mpich
       env:
         - ==MPICH==
