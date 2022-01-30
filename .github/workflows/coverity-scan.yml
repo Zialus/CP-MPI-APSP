@@ -20,6 +20,9 @@ jobs:
         env:
           TOKEN: ${{ secrets.COVERITY_TOKEN }}
 
+      - name: Install MPI compiler
+        run: sudo apt-get install -y mpich
+
       - name: Build with cov-build
         run: |
           export PATH=`pwd`/cov-analysis-linux64/bin:$PATH

@@ -12,34 +12,33 @@ script:
 
 matrix:
   include:
-    - os: linux
+    - name: Linux ==OPENMPI==
+      os: linux
       addons:
         apt:
           packages:
             - libopenmpi-dev openmpi-bin
       env:
-        - ==OPENMPI==
-    - os: osx
+      - EXTRA_FLAG=--oversubscribe
+    - name: MacOS ==OPENMPI==
+      os: osx
       osx_image: xcode10.1
       addons:
         homebrew:
           packages:
             - open-mpi
       env:
-        - ==OPENMPI==
         - EXTRA_FLAG=--oversubscribe
-    - os: linux
+    - name: Linux ==MPICH==
+      os: linux
       addons:
         apt:
           packages:
             - libmpich-dev mpich
-      env:
-        - ==MPICH==
-    - os: osx
+    - name: MacOS ==MPICH==
+      os: osx
       osx_image: xcode10.1
       addons:
         homebrew:
           packages:
             - mpich
-      env:
-        - ==MPICH==

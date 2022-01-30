@@ -13,12 +13,21 @@ env:
 
 jobs:
   build:
-    name: OS ${{ matrix.os }} | Compiler ${{ matrix.compiler-name }} | Version ${{ matrix.compiler-version }}
+    name: OS ${{ matrix.os }} | Compiler ${{ matrix.compiler-name }} | Extra Flag ${{ matrix.extra_flags }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ macos-10.15, ubuntu-20.04 ]
+        os: [ macos-11, ubuntu-20.04 ]
         compiler-name: [ 'open-mpi', 'mpich' ]
+        include:
+          - os: macos-11
+            compiler-name: 'open-mpi'
+            extra_flags: '--oversubscribe'
+          - os: ubuntu-20.04
+            compiler-name: 'open-mpi'
+            extra_flags: '--oversubscribe'
+    env:
+      EXTRA_FLAG: ${{ matrix.extra_flags }}
 
     runs-on: ${{ matrix.os }}
 
@@ -26,11 +35,11 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Install MPICH on MacOS
-        if: ${{ matrix.os == 'macos-10.15' && matrix.compiler-name == 'mpich' }}
+        if: ${{ matrix.os == 'macos-11' && matrix.compiler-name == 'mpich' }}
         run: brew install mpich
 
       - name: Install OPEN-MPI on MacOS
-        if: ${{ matrix.os == 'macos-10.15' && matrix.compiler-name == 'open-mpi' }}
+        if: ${{ matrix.os == 'macos-11' && matrix.compiler-name == 'open-mpi' }}
         run: brew install open-mpi
 
       - name: Install MPICH on Ubuntu
@@ -93,6 +102,8 @@ jobs:
           curl -sSLo $HOME/.sonar/build-wrapper-linux-x86.zip ${{ env.BUILD_WRAPPER_DOWNLOAD_URL }}
           unzip -o $HOME/.sonar/build-wrapper-linux-x86.zip -d $HOME/.sonar/
           echo "$HOME/.sonar/build-wrapper-linux-x86" >> $GITHUB_PATH
+      - name: Install MPI compiler
+        run: sudo apt-get install -y mpich
       - name: Run build-wrapper
         run: |
           mkdir build

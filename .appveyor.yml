@@ -7,10 +7,10 @@ image:
 
 install:
   # Install MS-MPI
-  - ps: Start-FileDownload 'https://download.microsoft.com/download/9/E/D/9ED82A62-4235-4003-A59A-9F6246073F2E/MSMpiSetup.exe'
+  - ps: Start-FileDownload 'https://download.microsoft.com/download/A/E/0/AE002626-9D9D-448D-8197-1EA510E297CE/msmpisetup.exe'
   - MSMpiSetup.exe -unattend -full
   # Install MS-MPI SDK
-  - ps: Start-FileDownload 'https://download.microsoft.com/download/9/E/D/9ED82A62-4235-4003-A59A-9F6246073F2E/msmpisdk.msi'
+  - ps: Start-FileDownload 'https://download.microsoft.com/download/A/E/0/AE002626-9D9D-448D-8197-1EA510E297CE/msmpisdk.msi'
   - msmpisdk.msi /passive
 
   - set MSMPI_BIN=C:\Program Files\Microsoft MPI\Bin\
