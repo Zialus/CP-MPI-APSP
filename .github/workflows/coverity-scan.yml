@@ -1,0 +1,42 @@
+name: Coverity Scan
+on:
+  schedule:
+    - cron: '0 0 * * *' # Every day at 00:00 UTC
+
+  workflow_dispatch:
+
+jobs:
+  latest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Download Coverity Build Tool
+        run: |
+          wget -q https://scan.coverity.com/download/cxx/linux64 --post-data "token=$TOKEN&project=Zialus%2FCP-MPI-APSP" -O cov-analysis-linux64.tar.gz
+          mkdir cov-analysis-linux64
+          tar xzf cov-analysis-linux64.tar.gz --strip 1 -C cov-analysis-linux64
+        env:
+          TOKEN: ${{ secrets.COVERITY_TOKEN }}
+
+      - name: Build with cov-build
+        run: |
+          export PATH=`pwd`/cov-analysis-linux64/bin:$PATH
+          mkdir build && cd build
+          cmake -DCMAKE_BUILD_TYPE=Release ..
+          cov-build --dir cov-int make
+
+      - name: Submit the result to Coverity Scan
+        run: |
+          cd build
+          tar czvf compiler.tgz cov-int
+          curl \
+          --form token=$TOKEN \
+          --form email=raulmendesferreira@gmail.com \
+          --form file=@compiler.tgz \
+          --form version="trunk" \
+          --form description="C-C0Compiler" \
+          https://scan.coverity.com/builds?project=Zialus%2FCP-MPI-APSP
+        env:
+          TOKEN: ${{ secrets.COVERITY_TOKEN }}
