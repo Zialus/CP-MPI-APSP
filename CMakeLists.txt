@@ -49,7 +49,7 @@ if (MSVC)
 endif ()
 
 ##### EXECUTABLE ZONE #####
-set(SOURCE_FILES src/main.cpp)
+set(SOURCE_FILES src/main.cpp src/main.hpp)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/exec")
 

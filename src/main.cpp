@@ -1,14 +1,5 @@
-//C++
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <algorithm>
-//C
-#include <cmath>
-#include <cstring>
-//MPI
-#include "mpi.h"
-//Defines
+#include "main.hpp"
+
 #define ROOT 0
 
 int** theMatrix;
